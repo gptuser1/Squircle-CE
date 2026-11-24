@@ -66,3 +66,10 @@ data class DeleteWorkspaceDialog(val uuid: String, val name: String)
 
 @Serializable
 data object LocalWorkspaceDialog
+
+@Serializable
+data class ExtractDialog(
+    val fileName: String,
+    val destPath: String,
+    val encrypted: Boolean,
+)

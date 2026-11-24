@@ -93,7 +93,7 @@ class RootFilesystem : Filesystem {
         throw UnsupportedOperationException()
     }
 
-    override fun extractFiles(source: FileModel, dest: FileModel): Flow<FileModel> {
+    override fun extractFiles(source: FileModel, dest: FileModel, password: String?): Flow<FileModel> {
         throw UnsupportedOperationException()
     }
 

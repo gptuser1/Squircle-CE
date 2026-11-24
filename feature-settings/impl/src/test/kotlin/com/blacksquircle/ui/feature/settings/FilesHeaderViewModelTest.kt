@@ -67,6 +67,7 @@ class FilesHeaderViewModelTest {
             encodingList = Charset.availableCharsets()
                 .map(Map.Entry<String, Charset>::key),
             lineBreakForSaving = LineBreak.LF.value,
+            hideLocalWorkspace = false,
             showHidden = true,
             compactPackages = true,
             foldersOnTop = true,

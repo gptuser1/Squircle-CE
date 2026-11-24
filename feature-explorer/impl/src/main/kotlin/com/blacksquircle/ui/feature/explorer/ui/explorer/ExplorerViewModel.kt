@@ -26,6 +26,7 @@ import com.blacksquircle.ui.core.provider.resources.StringProvider
 import com.blacksquircle.ui.core.settings.SettingsManager
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_COMPACT_PACKAGES
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_FOLDERS_ON_TOP
+import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_HIDE_LOCAL_WORKSPACE
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_SHOW_HIDDEN_FILES
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_SORT_MODE
 import com.blacksquircle.ui.feature.editor.api.interactor.EditorInteractor
@@ -37,6 +38,7 @@ import com.blacksquircle.ui.feature.explorer.api.navigation.CloneRepoDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.CompressDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.CreateDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteDialog
+import com.blacksquircle.ui.feature.explorer.api.navigation.ExtractDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteWorkspaceDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.PropertiesDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.RenameDialog
@@ -69,11 +71,14 @@ import com.blacksquircle.ui.filesystem.base.exception.FileNotFoundException
 import com.blacksquircle.ui.filesystem.base.exception.InvalidArchiveException
 import com.blacksquircle.ui.filesystem.base.exception.SplitArchiveException
 import com.blacksquircle.ui.filesystem.base.exception.UnsupportedArchiveException
+import com.blacksquircle.ui.filesystem.base.exception.WrongPasswordException
 import com.blacksquircle.ui.filesystem.base.model.AuthMethod
+import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.base.model.FileType
 import com.blacksquircle.ui.filesystem.base.model.FilesystemType
 import com.blacksquircle.ui.filesystem.local.LocalFilesystem
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,7 +113,9 @@ internal class ExplorerViewModel @Inject constructor(
     private var selectedNodes: List<FileNode> = emptyList()
     private var taskType: TaskType = TaskType.CREATE
     private var taskBuffer: List<FileNode> = emptyList()
+    private var extractRequest: ExtractRequest? = null
     private var workspaces: List<WorkspaceModel> = emptyList()
+    private var workspacesJob: Job? = null
     private var selectedWorkspace: WorkspaceModel? = null
     private var searchQuery: String = ""
 
@@ -275,7 +282,7 @@ internal class ExplorerViewModel @Inject constructor(
                 }
             } else {
                 when (fileNode.file.type) {
-                    FileType.ARCHIVE -> extractFiles(fileNode)
+                    FileType.ARCHIVE -> prepareExtract(fileNode)
                     FileType.DEFAULT -> {
                         editorInteractor.openFile(fileNode.file)
                         _viewEvent.send(ViewEvent.PopBackStack)
@@ -757,12 +764,47 @@ internal class ExplorerViewModel @Inject constructor(
         }
     }
 
-    private fun extractFiles(fileNode: FileNode) {
+    private fun prepareExtract(fileNode: FileNode) {
         viewModelScope.launch {
             val parentKey = cache.findParentKey(fileNode.key) ?: return@launch
             val parentNode = cache.findNodeByKey(parentKey) ?: return@launch
 
-            val taskId = explorerRepository.extractFiles(fileNode.file, parentNode.file)
+            val archiveInfo = explorerRepository.inspectArchive(fileNode.file)
+            if (archiveInfo != null && !archiveInfo.supported) {
+                val message = stringProvider.getString(R.string.explorer_toast_unsupported_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+                return@launch
+            }
+            if (archiveInfo?.split == true) {
+                val message = stringProvider.getString(R.string.explorer_toast_split_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+                return@launch
+            }
+
+            extractRequest = ExtractRequest(
+                source = fileNode.file,
+                destNode = parentNode,
+            )
+            _viewEvent.send(ViewEvent.Navigation(
+                ExtractDialog(
+                    fileName = fileNode.file.name,
+                    destPath = parentNode.file.path,
+                    encrypted = archiveInfo?.encrypted == true,
+                )
+            ))
+        }
+    }
+
+    fun extractFiles(password: String) {
+        val request = extractRequest ?: return
+        extractRequest = null
+
+        viewModelScope.launch {
+            val taskId = explorerRepository.extractFiles(
+                source = request.source,
+                dest = request.destNode.file,
+                password = password.ifBlank { null },
+            )
             val screen = TaskDialog(taskId)
             _viewEvent.send(ViewEvent.Navigation(screen))
 
@@ -773,7 +815,7 @@ internal class ExplorerViewModel @Inject constructor(
                     is TaskStatus.Error -> onTaskFailed(status.exception)
                     is TaskStatus.Done -> {
                         onTaskFinished()
-                        loadFiles(parentNode)
+                        loadFiles(request.destNode)
                     }
                     else -> Unit
                 }
@@ -853,10 +895,30 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun loadWorkspaces() {
-        viewModelScope.launch {
+        workspacesJob?.cancel()
+        workspacesJob = viewModelScope.launch {
             try {
                 explorerRepository.loadWorkspaces().collect { workspaces ->
                     this@ExplorerViewModel.workspaces = workspaces
+
+                    if (workspaces.isEmpty()) {
+                        selectedWorkspace = null
+                        cache.clear()
+                        resetBuffer()
+
+                        _viewState.update {
+                            it.copy(
+                                workspaces = emptyList(),
+                                selectedWorkspace = null,
+                                fileNodes = emptyList(),
+                                searchQuery = searchQuery,
+                                showHidden = showHidden,
+                                compactPackages = compactPackages,
+                                sortMode = sortMode,
+                            )
+                        }
+                        return@collect
+                    }
 
                     val workspace = workspaces
                         .find { it.uuid == settingsManager.workspace }
@@ -900,6 +962,9 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun registerOnPreferenceChangeListeners() {
+        settingsManager.registerListener(KEY_HIDE_LOCAL_WORKSPACE) {
+            loadWorkspaces()
+        }
         settingsManager.registerListener(KEY_SHOW_HIDDEN_FILES) {
             val newValue = settingsManager.showHidden
             if (showHidden == newValue) {
@@ -955,11 +1020,17 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun unregisterOnPreferenceChangeListeners() {
+        settingsManager.unregisterListener(KEY_HIDE_LOCAL_WORKSPACE)
         settingsManager.unregisterListener(KEY_SHOW_HIDDEN_FILES)
         settingsManager.unregisterListener(KEY_COMPACT_PACKAGES)
         settingsManager.unregisterListener(KEY_FOLDERS_ON_TOP)
         settingsManager.unregisterListener(KEY_SORT_MODE)
     }
+
+    private data class ExtractRequest(
+        val source: FileModel,
+        val destNode: FileNode,
+    )
 
     private fun resetBuffer() {
         taskType = TaskType.CREATE
@@ -1046,6 +1117,10 @@ internal class ExplorerViewModel @Inject constructor(
             }
             is SplitArchiveException -> {
                 val message = stringProvider.getString(R.string.explorer_toast_split_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+            }
+            is WrongPasswordException -> {
+                val message = stringProvider.getString(R.string.explorer_toast_wrong_password)
                 _viewEvent.send(ViewEvent.Toast(message))
             }
             is InvalidArchiveException -> {

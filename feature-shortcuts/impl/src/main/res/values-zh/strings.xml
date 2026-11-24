@@ -29,8 +29,8 @@
     <string name="shortcuts_delete_line_title">删除当前行</string>
     <string name="shortcuts_duplicate_line_title">复制当前行</string>
     <string name="shortcuts_toggle_case_title">更改大小写</string>
-    <string name="shortcuts_previous_word_title">上一个字词</string>
-    <string name="shortcuts_next_word_title">下一个字词</string>
+    <string name="shortcuts_previous_word_title">上一个单词</string>
+    <string name="shortcuts_next_word_title">下一个单词</string>
     <string name="shortcuts_start_of_line_title">跳到行首</string>
     <string name="shortcuts_end_of_line_title">跳到行尾</string>
     <string name="shortcuts_undo_title">撤销</string>
@@ -40,7 +40,7 @@
     <string name="shortcuts_goto_line_title">转到行</string>
     <string name="shortcuts_force_syntax_title">强制语法</string>
     <string name="shortcuts_insert_color_title">插入颜色</string>
-    <string name="shortcuts_none_set">无设定</string>
+    <string name="shortcuts_none_set">未设置</string>
     <string name="shortcuts_assign_dialog_message">按下新的快捷键（必须包含 Ctrl 或 Alt）</string>
     <string name="shortcuts_conflict_dialog_message">该快捷键已被其他操作绑定，是否继续将绑定改为此操作？</string>
 </resources>

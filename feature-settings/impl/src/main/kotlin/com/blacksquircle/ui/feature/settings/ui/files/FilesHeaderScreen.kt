@@ -64,6 +64,7 @@ internal fun FilesHeaderScreen(
         onEncodingForSavingChanged = viewModel::onEncodingForSavingChanged,
         onLineBreaksForSavingChanged = viewModel::onLineBreakForSavingChanged,
         onStorageAccessClicked = viewModel::onStorageAccessClicked,
+        onHideLocalWorkspaceChanged = viewModel::onHideLocalWorkspaceChanged,
         onShowHiddenChanged = viewModel::onShowHiddenChanged,
         onCompactPackagesChanged = viewModel::onCompactPackagesChanged,
         onFoldersOnTopChanged = viewModel::onFoldersOnTopChanged,
@@ -92,6 +93,7 @@ private fun FilesHeaderScreen(
     onEncodingForSavingChanged: (String) -> Unit = {},
     onLineBreaksForSavingChanged: (String) -> Unit = {},
     onStorageAccessClicked: () -> Unit = {},
+    onHideLocalWorkspaceChanged: (Boolean) -> Unit = {},
     onShowHiddenChanged: (Boolean) -> Unit = {},
     onCompactPackagesChanged: (Boolean) -> Unit = {},
     onFoldersOnTopChanged: (Boolean) -> Unit = {},
@@ -162,6 +164,16 @@ private fun FilesHeaderScreen(
             )
             HorizontalDivider()
             PreferenceGroup(
+                title = stringResource(R.string.settings_category_workspace)
+            )
+            SwitchPreference(
+                title = stringResource(R.string.settings_hide_local_workspace_title),
+                subtitle = stringResource(R.string.settings_hide_local_workspace_subtitle),
+                checked = viewState.hideLocalWorkspace,
+                onCheckedChange = onHideLocalWorkspaceChanged,
+            )
+            HorizontalDivider()
+            PreferenceGroup(
                 title = stringResource(R.string.settings_category_file_manager)
             )
             SwitchPreference(
@@ -205,6 +217,7 @@ private fun FilesHeaderScreenPreview() {
                 encodingForSaving = "UTF-8",
                 encodingList = emptyList(),
                 lineBreakForSaving = "lf",
+                hideLocalWorkspace = false,
                 showHidden = true,
                 compactPackages = true,
                 foldersOnTop = true,

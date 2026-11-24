@@ -136,4 +136,11 @@
     <string name="explorer_error_view_message_password">Enter password to connect to remote server</string>
     <string name="explorer_error_view_message_passphrase">Enter passphrase to connect to remote server</string>
 
+    <string name="explorer_workspace_empty_title">No workspaces</string>
+    <string name="explorer_workspace_empty_subtitle">Tap the + button in the sidebar to add one</string>
+    <string name="explorer_extract_dialog_title">Extract</string>
+    <string name="explorer_extract_dialog_message">Extract %1$s to %2$s?</string>
+    <string name="explorer_extract_dialog_password_label">Password</string>
+    <string name="explorer_extract_dialog_button_extract">Extract</string>
+    <string name="explorer_toast_wrong_password">Wrong password</string>
 </resources>

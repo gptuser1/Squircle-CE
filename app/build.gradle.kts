@@ -28,9 +28,10 @@ android {
     namespace = "com.blacksquircle.ui"
 
     defaultConfig {
-        applicationId = "com.blacksquircle.ui"
-        versionCode = 10028
-        versionName = "2025.1.3"
+        // Forked build: distinct applicationId so it can coexist with the official app
+        applicationId = "com.blacksquircle.ui.forkbyfox"
+        versionCode = 10029
+        versionName = "2025.1.3-v1.0"
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

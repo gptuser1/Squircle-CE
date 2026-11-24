@@ -37,6 +37,7 @@ import com.blacksquircle.ui.feature.git.api.interactor.GitInteractor
 import com.blacksquircle.ui.feature.servers.api.interactor.ServerInteractor
 import com.blacksquircle.ui.filesystem.base.Filesystem
 import com.blacksquircle.ui.filesystem.base.exception.FileNotFoundException
+import com.blacksquircle.ui.filesystem.base.model.ArchiveInfo
 import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.base.model.FilesystemType
 import com.blacksquircle.ui.filesystem.local.LocalFilesystem
@@ -69,7 +70,9 @@ internal class ExplorerRepositoryImpl(
             serverInteractor.flowAll(),
         ) { workspaces, servers ->
             val defaultWorkspaces = buildList {
-                add(context.createLocalWorkspace())
+                if (!settingsManager.hideLocalWorkspace) {
+                    add(context.createLocalWorkspace())
+                }
                 if (rootBeer.isRooted) {
                     add(context.createRootWorkspace())
                 }
@@ -233,10 +236,20 @@ internal class ExplorerRepositoryImpl(
         }
     }
 
-    override fun extractFiles(source: FileModel, dest: FileModel): String {
+    override suspend fun inspectArchive(source: FileModel): ArchiveInfo? {
+        return withContext(dispatcherProvider.io()) {
+            try {
+                currentFilesystem().inspectArchive(source)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    override fun extractFiles(source: FileModel, dest: FileModel, password: String?): String {
         return taskManager.execute(TaskType.EXTRACT) { update ->
             val filesystem = currentFilesystem()
-            filesystem.extractFiles(source, dest)
+            filesystem.extractFiles(source, dest, password)
                 .onStart {
                     val progress = TaskStatus.Progress(
                         count = -1,

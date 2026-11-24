@@ -310,25 +310,45 @@ class FileTaskTest {
     }
 
     @Test
-    fun `When extract file clicked Then execute task`() = runTest {
+    fun `When extract file clicked Then show confirmation dialog`() = runTest {
         // Given
         val fileModel = createFile("archive.zip")
         coEvery { explorerRepository.listFiles(any()) } returns listOf(fileModel)
+        coEvery { explorerRepository.inspectArchive(any()) } returns null
 
         val viewModel = createViewModel()
-        val fileTask = Task(taskId, TaskType.EXTRACT)
-
-        every { explorerRepository.extractFiles(any(), any()) } returns taskId
-        every { taskManager.monitor(taskId) } returns MutableStateFlow(fileTask)
 
         // When
         val fileNode = createNode(fileModel)
         viewModel.onFileClicked(fileNode)
 
         // Then
+        assertTrue(viewModel.viewEvent.first() is ViewEvent.Navigation)
+        verify(exactly = 0) { taskManager.monitor(any()) }
+        coVerify(exactly = 0) { explorerRepository.extractFiles(any(), any(), any()) }
+    }
+
+    @Test
+    fun `When extract confirmed Then execute task`() = runTest {
+        // Given
+        val fileModel = createFile("archive.zip")
+        coEvery { explorerRepository.listFiles(any()) } returns listOf(fileModel)
+        coEvery { explorerRepository.inspectArchive(any()) } returns null
+        every { explorerRepository.extractFiles(any(), any(), any()) } returns taskId
+        every { taskManager.monitor(taskId) } returns MutableStateFlow(Task(taskId, TaskType.EXTRACT))
+
+        val viewModel = createViewModel()
+        val fileNode = createNode(fileModel)
+        viewModel.onFileClicked(fileNode)
+        viewModel.viewEvent.first()
+
+        // When
+        viewModel.extractFiles("")
+
+        // Then
         verify(exactly = 1) { taskManager.monitor(taskId) }
         coVerify(exactly = 1) {
-            explorerRepository.extractFiles(fileModel, defaultLocation)
+            explorerRepository.extractFiles(fileModel, defaultLocation, null)
         }
     }
 

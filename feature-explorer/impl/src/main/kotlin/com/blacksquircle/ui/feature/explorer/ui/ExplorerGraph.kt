@@ -31,6 +31,7 @@ import com.blacksquircle.ui.feature.explorer.api.navigation.CreateDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteWorkspaceDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.ExplorerScreen
+import com.blacksquircle.ui.feature.explorer.api.navigation.ExtractDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.LocalWorkspaceDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.NotificationDeniedDialog
 import com.blacksquircle.ui.feature.explorer.api.navigation.PropertiesDialog
@@ -43,6 +44,7 @@ import com.blacksquircle.ui.feature.explorer.ui.compress.CompressScreen
 import com.blacksquircle.ui.feature.explorer.ui.create.CreateFileScreen
 import com.blacksquircle.ui.feature.explorer.ui.delete.DeleteScreen
 import com.blacksquircle.ui.feature.explorer.ui.explorer.ExplorerScreen
+import com.blacksquircle.ui.feature.explorer.ui.extract.ExtractScreen
 import com.blacksquircle.ui.feature.explorer.ui.permissions.NotificationDeniedScreen
 import com.blacksquircle.ui.feature.explorer.ui.permissions.StorageDeniedScreen
 import com.blacksquircle.ui.feature.explorer.ui.properties.PropertiesScreen
@@ -76,6 +78,10 @@ fun NavGraphBuilder.explorerGraph(navController: NavHostController) {
     }
     dialog<CompressDialog> {
         CompressScreen(navController)
+    }
+    dialog<ExtractDialog> { backStackEntry ->
+        val navArgs = backStackEntry.toRoute<ExtractDialog>()
+        ExtractScreen(navArgs, navController)
     }
     dialog<TaskDialog> { backStackEntry ->
         val navArgs = backStackEntry.toRoute<TaskDialog>()

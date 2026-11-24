@@ -82,6 +82,13 @@ internal class FilesHeaderViewModel @Inject constructor(
         }
     }
 
+    fun onHideLocalWorkspaceChanged(hideLocalWorkspace: Boolean) {
+        viewModelScope.launch {
+            settingsManager.hideLocalWorkspace = hideLocalWorkspace
+            _viewState.value = updateViewState()
+        }
+    }
+
     fun onShowHiddenChanged(showHidden: Boolean) {
         viewModelScope.launch {
             settingsManager.showHidden = showHidden
@@ -118,6 +125,7 @@ internal class FilesHeaderViewModel @Inject constructor(
             encodingList = Charset.availableCharsets()
                 .map(Map.Entry<String, Charset>::key),
             lineBreakForSaving = settingsManager.lineBreakForSaving,
+            hideLocalWorkspace = settingsManager.hideLocalWorkspace,
             showHidden = settingsManager.showHidden,
             foldersOnTop = settingsManager.foldersOnTop,
             compactPackages = settingsManager.compactPackages,

@@ -16,12 +16,12 @@
   -->
 <resources>
     <string name="explorer_menu_sort_show_hidden">显示隐藏文件</string>
-    <string name="explorer_menu_sort_compact_packages">压缩包</string>
+    <string name="explorer_menu_sort_compact_packages">合并中间目录</string>
     <string name="explorer_menu_sort_by_name">按名称排序</string>
     <string name="explorer_menu_sort_by_size">按大小排序</string>
     <string name="explorer_menu_sort_by_date">按日期排序</string>
     <string name="explorer_menu_selection_delete">删除</string>
-    <string name="explorer_menu_selection_open_with">另开为</string>
+    <string name="explorer_menu_selection_open_with">打开方式</string>
     <string name="explorer_menu_selection_rename">重命名</string>
     <string name="explorer_menu_selection_properties">属性</string>
     <string name="explorer_menu_selection_copy_path">复制路径</string>
@@ -44,9 +44,9 @@
     <string name="explorer_compress_dialog_button_compress">压缩</string>
     <string name="explorer_auth_dialog_title">认证</string>
     <string name="explorer_auth_dialog_input_password_label">请输入密码</string>
-    <string name="explorer_auth_dialog_input_passphrase_label">请输入密码口令</string>
+    <string name="explorer_auth_dialog_input_passphrase_label">请输入口令</string>
     <string name="explorer_auth_dialog_button_authenticate">认证</string>
-    <string name="explorer_clone_dialog_title">克隆…</string>
+    <string name="explorer_clone_dialog_title">克隆仓库…</string>
     <string name="explorer_clone_dialog_input_label">输入 git 网址</string>
     <string name="explorer_clone_dialog_input_error">网址无效</string>
     <string name="explorer_clone_dialog_button_clone">克隆</string>
@@ -80,7 +80,7 @@
     <string name="explorer_task_service_channel_description">显示并控制文件操作</string>
     <string name="explorer_task_service_message">后台操作正在进行</string>
     <string name="explorer_storage_permission_dialog_title">外部存储权限</string>
-    <string name="explorer_storage_permission_dialog_message">作为文件管理器，Squircle CE 需要访问所有文件才能正常运行。\n\n请点击“继续”后在授予所有文件的管理权限。</string>
+    <string name="explorer_storage_permission_dialog_message">要正常运行，Squircle CE 需要完整访问你的文件。\n\n请在接下来的系统设置中授予权限。</string>
     <string name="explorer_notification_permission_dialog_title">通知</string>
     <string name="explorer_notification_permission_dialog_message">Squircle CE 需要通知权限以保证后台运行\n\n请在下一个系统设置界面中选择允许通知</string>
     <string name="explorer_workspace_add_dialog_title">添加工作区</string>
@@ -100,13 +100,20 @@
     <string name="explorer_toast_unsupported_archive">暂不支持该压缩包格式</string>
     <string name="explorer_toast_invalid_archive">该压缩包已损坏</string>
     <string name="explorer_toast_split_archive">暂不支持已分卷的压缩包</string>
-    <string name="explorer_toast_encrypted_archive">暂不支持已加密的压缩包</string>
+    <string name="explorer_toast_encrypted_archive">压缩包已加密，需要密码</string>
     <string name="explorer_toast_operation_cancelled">操作已取消</string>
     <string name="explorer_toast_operation_not_supported">操作不支持</string>
     <string name="explorer_toast_same_directory_required">文件必须位于同一目录中</string>
-    <string name="explorer_toast_done">已完毕</string>
+    <string name="explorer_toast_done">已完成</string>
     <string name="explorer_error_view_title_auth">需要认证</string>
     <string name="explorer_error_view_button_authenticate">认证</string>
     <string name="explorer_error_view_message_password">请输入密码以连接到远程服务器</string>
-    <string name="explorer_error_view_message_passphrase">请输入密码以连接到远程服务器</string>
+    <string name="explorer_error_view_message_passphrase">请输入口令以连接到远程服务器</string>
+    <string name="explorer_workspace_empty_title">没有工作区</string>
+    <string name="explorer_workspace_empty_subtitle">点击侧边栏的 + 按钮添加</string>
+    <string name="explorer_extract_dialog_title">解压</string>
+    <string name="explorer_extract_dialog_message">将 %1$s 解压到 %2$s？</string>
+    <string name="explorer_extract_dialog_password_label">密码</string>
+    <string name="explorer_extract_dialog_button_extract">解压</string>
+    <string name="explorer_toast_wrong_password">密码错误</string>
 </resources>

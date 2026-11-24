@@ -160,7 +160,7 @@ class LocalFilesystem : Filesystem {
     }
 
     // TODO: Use ProgressMonitor
-    override fun extractFiles(source: FileModel, dest: FileModel): Flow<FileModel> {
+    override fun extractFiles(source: FileModel, dest: FileModel, password: String?): Flow<FileModel> {
         return callbackFlow {
             val sourceFile = toFileObject(source)
             val archiveFile = ZipFile(sourceFile)
@@ -175,22 +175,72 @@ class LocalFilesystem : Filesystem {
             }
             when {
                 archiveFile.isValidZipFile -> {
+                    if (archiveFile.isSplitArchive) {
+                        throw SplitArchiveException(source.path)
+                    }
+                    if (archiveFile.isEncrypted) {
+                        if (password.isNullOrEmpty()) {
+                            throw EncryptedArchiveException(source.path)
+                        }
+                        archiveFile.setPassword(password.toCharArray())
+                    }
                     try {
                         archiveFile.extractAll(dest.path)
                     } catch (e: ZipException) {
-                        if (e.type == ZipException.Type.TASK_CANCELLED_EXCEPTION) {
-                            throw CancellationException()
-                        } else {
-                            throw e
+                        when (e.type) {
+                            ZipException.Type.TASK_CANCELLED_EXCEPTION -> throw CancellationException()
+                            ZipException.Type.WRONG_PASSWORD -> throw WrongPasswordException(source.path)
+                            else -> throw e
                         }
                     }
                     send(source)
                 }
-                archiveFile.isEncrypted -> throw EncryptedArchiveException(source.path)
-                archiveFile.isSplitArchive -> throw SplitArchiveException(source.path)
                 else -> throw InvalidArchiveException(source.path)
             }
             close() // FIXME send() вызывается только 1 раз
+        }
+    }
+
+    override fun inspectArchive(source: FileModel): ArchiveInfo? {
+        val file = toFileObject(source)
+        if (!file.exists() || !file.name.endsWith(supportedArchives)) {
+            return ArchiveInfo(supported = false)
+        }
+        return try {
+            val archiveFile = ZipFile(file)
+            when {
+                !archiveFile.isValidZipFile -> ArchiveInfo(supported = false)
+                archiveFile.isSplitArchive -> ArchiveInfo(supported = true, split = true)
+                archiveFile.isEncrypted -> ArchiveInfo(supported = true, encrypted = true)
+                else -> ArchiveInfo(supported = true)
+            }
+        } catch (e: Exception) {
+            ArchiveInfo(supported = false)
+        }
+    }
+
+    override fun verifyArchivePassword(source: FileModel, password: String?): Boolean {
+        val file = toFileObject(source)
+        if (!file.exists() || !file.name.endsWith(supportedArchives)) {
+            return false
+        }
+        return try {
+            val archiveFile = ZipFile(file)
+            if (!archiveFile.isValidZipFile) {
+                false
+            } else if (!archiveFile.isEncrypted) {
+                true
+            } else if (password.isNullOrEmpty()) {
+                false
+            } else {
+                archiveFile.setPassword(password.toCharArray())
+                val header = archiveFile.fileHeaders.firstOrNull { it.isEncrypted }
+                    ?: return true
+                archiveFile.getInputStream(header).use { it.read() }
+                true
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 

@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="editor_goto_line_dialog_input_label">行:</string>
+    <string name="editor_goto_line_dialog_input_label">行号：</string>
     <string name="editor_menu_file_close">关闭</string>
     <string name="editor_menu_file_close_others">关闭其他</string>
     <string name="editor_menu_file_close_all">关闭全部</string>
@@ -41,7 +41,7 @@
     <string name="editor_force_syntax_dialog_title">语法高亮</string>
     <string name="editor_color_picker_dialog_title">颜色选择器</string>
     <string name="editor_exit_dialog_title">退出应用</string>
-    <string name="editor_exit_dialog_message">确定要退出本应用吗？所有更改将会保存到缓存中</string>
+    <string name="editor_exit_dialog_message">确定要退出吗？所有更改都会保存到缓存中</string>
     <string name="editor_close_tab_dialog_message">确定要关闭该文件吗？所有未保存的更改将会丢失</string>
     <string name="editor_close_tab_dialog_button_close">关闭</string>
     <string name="editor_empty_view_title">还没有打开任何文件</string>

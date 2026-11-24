@@ -48,6 +48,7 @@ import com.blacksquircle.ui.ds.divider.VerticalDivider
 import com.blacksquircle.ui.ds.emptyview.EmptyView
 import com.blacksquircle.ui.ds.progress.CircularProgress
 import com.blacksquircle.ui.ds.scaffold.ScaffoldSuite
+import com.blacksquircle.ui.feature.explorer.R
 import com.blacksquircle.ui.feature.explorer.data.utils.clipText
 import com.blacksquircle.ui.feature.explorer.data.utils.openFileWith
 import com.blacksquircle.ui.feature.explorer.domain.model.ErrorAction
@@ -68,6 +69,7 @@ import com.blacksquircle.ui.ds.R as UiR
 
 internal const val KEY_AUTHENTICATION = "KEY_AUTHENTICATION"
 internal const val KEY_COMPRESS_FILE = "KEY_COMPRESS_FILE"
+internal const val KEY_EXTRACT_FILE = "KEY_EXTRACT_FILE"
 internal const val KEY_CREATE_FILE = "KEY_CREATE_FILE"
 internal const val KEY_CREATE_FOLDER = "KEY_CREATE_FOLDER"
 internal const val KEY_CLONE_REPO = "KEY_CLONE_REPO"
@@ -175,6 +177,10 @@ internal fun ExplorerScreen(
     NavResultEffect(KEY_COMPRESS_FILE) { bundle ->
         val fileName = bundle.getString(ARG_USER_INPUT).orEmpty()
         viewModel.compressFiles(fileName)
+    }
+    NavResultEffect(KEY_EXTRACT_FILE) { bundle ->
+        val password = bundle.getString(ARG_USER_INPUT).orEmpty()
+        viewModel.extractFiles(password)
     }
 
     CleanupEffect {
@@ -289,7 +295,14 @@ private fun ExplorerScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                if (viewState.isEmpty && !viewState.isError && !viewState.isLoading) {
+                if (viewState.noWorkspaces && !viewState.isLoading) {
+                    EmptyView(
+                        iconResId = UiR.drawable.ic_file_find,
+                        title = stringResource(R.string.explorer_workspace_empty_title),
+                        subtitle = stringResource(R.string.explorer_workspace_empty_subtitle),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else if (viewState.isEmpty && !viewState.isError && !viewState.isLoading) {
                     EmptyView(
                         iconResId = UiR.drawable.ic_file_find,
                         title = stringResource(UiR.string.common_no_result),

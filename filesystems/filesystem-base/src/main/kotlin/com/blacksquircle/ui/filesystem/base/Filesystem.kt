@@ -16,6 +16,7 @@
 
 package com.blacksquircle.ui.filesystem.base
 
+import com.blacksquircle.ui.filesystem.base.model.ArchiveInfo
 import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.base.model.FileParams
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +32,10 @@ interface Filesystem {
     fun copyFile(source: FileModel, dest: FileModel)
 
     fun compressFiles(source: List<FileModel>, dest: FileModel): Flow<FileModel>
-    fun extractFiles(source: FileModel, dest: FileModel): Flow<FileModel>
+    fun extractFiles(source: FileModel, dest: FileModel, password: String? = null): Flow<FileModel>
+
+    fun inspectArchive(source: FileModel): ArchiveInfo? = null
+    fun verifyArchivePassword(source: FileModel, password: String?): Boolean = true
 
     fun loadFile(fileModel: FileModel, fileParams: FileParams): String
     fun saveFile(fileModel: FileModel, text: String, fileParams: FileParams)
