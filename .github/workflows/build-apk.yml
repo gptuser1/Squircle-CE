@@ -2,7 +2,7 @@
 #
 # Notes:
 #   - Manual runs can pick a variant (fossDebug / gmsDebug / fossRelease / gmsRelease)
-#   - Push and PR builds only produce fossDebug to save CI minutes
+#   - Automatic push/PR builds are disabled on purpose; trigger the workflow manually when needed
 #   - Release variants need repo secrets: KEYSTORE_FILE (base64) / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD
 #   - Public repo: 4 vCPU / 16 GB RAM, free and unmetered
 #   - Private repo: 2 vCPU / 8 GB RAM, counted against the 2000 min/month quota
@@ -22,12 +22,6 @@ on:
           - gmsDebug
           - fossRelease
           - gmsRelease
-
-  push:
-    branches: [master, main]
-    paths-ignore:
-      - "**.md"
-      - "fastlane/**"
 
 permissions:
   contents: read
