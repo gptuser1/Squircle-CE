@@ -28,7 +28,8 @@ android {
     namespace = "com.blacksquircle.ui"
 
     defaultConfig {
-        applicationId = "com.blacksquircle.ui"
+        // Forked build: distinct applicationId so it can coexist with the official app
+        applicationId = "com.blacksquircle.ui.forkbyfox"
         versionCode = 10028
         versionName = "2025.1.3"
     }
