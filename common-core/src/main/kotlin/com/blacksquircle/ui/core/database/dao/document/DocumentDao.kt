@@ -72,6 +72,9 @@ interface DocumentDao {
     @Query("UPDATE `${Tables.DOCUMENTS}` SET `language` = :language WHERE `uuid` = :uuid")
     suspend fun updateLanguage(uuid: String, language: String)
 
+    @Query("UPDATE `${Tables.DOCUMENTS}` SET `file_uri` = :fileUri WHERE `uuid` = :uuid")
+    suspend fun updateFileUri(uuid: String, fileUri: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(document: DocumentEntity): Long
 

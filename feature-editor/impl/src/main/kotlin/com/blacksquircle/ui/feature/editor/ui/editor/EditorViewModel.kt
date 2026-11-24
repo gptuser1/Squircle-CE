@@ -16,6 +16,7 @@
 
 package com.blacksquircle.ui.feature.editor.ui.editor
 
+import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -71,6 +72,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Provider
 import com.blacksquircle.ui.ds.R as UiR
@@ -1145,6 +1147,44 @@ internal class EditorViewModel @Inject constructor(
         }
     }
 
+    private fun onFileRenamed(fileModel: FileModel, newName: String) {
+        viewModelScope.launch {
+            try {
+                val existingIndex = documents.indexOf { it.document.fileUri == fileModel.fileUri }
+                if (existingIndex != -1) {
+                    val documentState = documents[existingIndex]
+                    // SAF renames produce a brand new document uri, it cannot be derived from
+                    // the old one, so content:// documents keep their previous uri
+                    if (documentState.document.scheme != ContentResolver.SCHEME_CONTENT) {
+                        val document = documentState.document.copy(
+                            fileUri = documentState.document.fileUri
+                                .substringBeforeLast(File.separator) + File.separator + newName
+                        )
+
+                        documentRepository.renameDocument(document)
+
+                        documents = documents.map { state ->
+                            if (state.document.uuid == document.uuid) {
+                                state.copy(document = document)
+                            } else {
+                                state
+                            }
+                        }
+
+                        _viewState.update {
+                            it.copy(documents = documents)
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, e.message)
+                _viewEvent.send(ViewEvent.Toast(e.message.orEmpty()))
+            }
+        }
+    }
+
     private fun onFileDeleted(fileModel: FileModel) {
         viewModelScope.launch {
             try {
@@ -1301,6 +1341,7 @@ internal class EditorViewModel @Inject constructor(
                     when (event) {
                         is EditorApiEvent.OpenFile -> onFileOpened(event.fileModel)
                         is EditorApiEvent.OpenFileUri -> onFileOpened(event.fileUri)
+                        is EditorApiEvent.RenameFile -> onFileRenamed(event.fileModel, event.newName)
                         is EditorApiEvent.DeleteFile -> onFileDeleted(event.fileModel)
                     }
                 }

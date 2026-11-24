@@ -209,6 +209,12 @@ internal class DocumentRepositoryImpl(
         }
     }
 
+    override suspend fun renameDocument(document: DocumentModel) {
+        withContext(dispatcherProvider.io()) {
+            documentDao.updateFileUri(document.uuid, document.fileUri)
+        }
+    }
+
     override suspend fun openExternal(fileUri: Uri, position: Int): DocumentModel {
         return withContext(dispatcherProvider.io()) {
             val fileModel = when {

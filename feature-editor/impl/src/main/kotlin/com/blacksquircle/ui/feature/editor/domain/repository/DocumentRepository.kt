@@ -39,6 +39,7 @@ internal interface DocumentRepository {
 
     suspend fun changeModified(document: DocumentModel, modified: Boolean)
     suspend fun changeLanguage(document: DocumentModel, language: String)
+    suspend fun renameDocument(document: DocumentModel)
 
     suspend fun openExternal(fileUri: Uri, position: Int): DocumentModel
     suspend fun saveExternal(document: DocumentModel, content: Content, fileUri: Uri)
