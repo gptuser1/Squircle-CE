@@ -24,6 +24,7 @@ import androidx.core.net.toUri
 import com.blacksquircle.ui.filesystem.base.Filesystem
 import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.base.model.FileParams
+import com.ibm.icu.text.CharsetDetector
 import kotlinx.coroutines.flow.Flow
 import java.io.BufferedReader
 import java.io.IOException
@@ -98,12 +99,25 @@ class SAFFilesystem(private val context: Context) : Filesystem {
 
     override fun loadFile(fileModel: FileModel, fileParams: FileParams): String {
         val fileUri = fileModel.fileUri.toUri()
-        // TODO chardet?
-        context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
-            return inputStream.bufferedReader(fileParams.charset)
-                .use(BufferedReader::readText)
+        val inputStream = context.contentResolver.openInputStream(fileUri)
+            ?: throw IOException("Unable to open file: ${fileModel.fileUri}")
+        return inputStream.use { stream ->
+            if (fileParams.chardet) {
+                val bytes = stream.readBytes()
+                val charset = try {
+                    val charsetMatch = CharsetDetector()
+                        .setText(bytes)
+                        .detect()
+                    charset(charsetMatch.name)
+                } catch (e: Exception) {
+                    Charsets.UTF_8
+                }
+                String(bytes, charset)
+            } else {
+                stream.bufferedReader(fileParams.charset)
+                    .use(BufferedReader::readText)
+            }
         }
-        throw IOException("Unable to open file: ${fileModel.fileUri}")
     }
 
     override fun saveFile(fileModel: FileModel, text: String, fileParams: FileParams) {

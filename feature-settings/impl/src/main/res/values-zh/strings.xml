@@ -47,6 +47,8 @@
     <string name="settings_category_editor">编辑器</string>
     <string name="settings_word_wrap_title">自动换行</string>
     <string name="settings_word_wrap_subtitle">是否根据屏幕宽度自动换行。</string>
+    <string name="settings_sticky_scroll_title">粘性滚动</string>
+    <string name="settings_sticky_scroll_subtitle">滚动时将代码标题固定在顶部</string>
     <string name="settings_code_completion_title">代码补全</string>
     <string name="settings_code_completion_subtitle">在输入时将自动在下拉菜单中显示代码补全建议。</string>
     <string name="settings_pinch_zoom_title">手势缩放</string>
