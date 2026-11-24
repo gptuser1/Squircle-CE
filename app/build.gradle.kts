@@ -30,8 +30,8 @@ android {
     defaultConfig {
         // Forked build: distinct applicationId so it can coexist with the official app
         applicationId = "com.blacksquircle.ui.forkbyfox"
-        versionCode = 10029
-        versionName = "2025.1.3-v1.0"
+        versionCode = 10030
+        versionName = "2025.1.3-v1.1"
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

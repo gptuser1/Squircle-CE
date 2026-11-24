@@ -115,9 +115,12 @@ jobs:
 
           Changes over upstream:
           - separate applicationId (com.blacksquircle.ui.forkbyfox), installs alongside the official app
+          - app name changed to SquircleCEfox
           - hide the built-in local workspace from the sidebar (Settings - Files)
           - confirm before extracting an archive, ask for a password on encrypted archives
-          - Chinese translation fixes
+          - charset auto-detection now also works for SAF documents (Settings - Files, off by default)
+          - complete Chinese translation of the editor settings
+          - open editor tabs follow file renames
           EOF
           )
 
