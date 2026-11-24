@@ -53,7 +53,7 @@
     <string name="editor_toast_file_saved">已保存</string>
     <string name="editor_toast_git_invalid_credentials">Git 需要在设置中进行配置</string>
     <string name="editor_goto_line_dialog_title">跳转到行</string>
-    <string name="editor_goto_line_dialog_input_label">行:</string>
+    <string name="editor_goto_line_dialog_input_label">行号：</string>
     <string name="editor_goto_line_dialog_button_go_to">转到</string>
     <string name="editor_force_syntax_dialog_title">语法高亮</string>
     <string name="editor_force_syntax_dialog_plain_text">纯文本</string>
@@ -62,5 +62,5 @@
     <string name="editor_close_tab_dialog_message">确定要关闭该文件吗？所有未保存的更改将会丢失</string>
     <string name="editor_close_tab_dialog_button_close">关闭</string>
     <string name="editor_exit_dialog_title">退出应用</string>
-    <string name="editor_exit_dialog_message">确定要退出本应用吗？所有更改将会保存到缓存中</string>
+    <string name="editor_exit_dialog_message">确定要退出吗？所有更改都会保存到缓存中</string>
 </resources>

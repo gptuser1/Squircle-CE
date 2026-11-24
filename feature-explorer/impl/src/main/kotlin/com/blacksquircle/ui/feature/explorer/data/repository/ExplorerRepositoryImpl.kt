@@ -39,6 +39,7 @@ import com.blacksquircle.ui.feature.explorer.domain.repository.ExplorerRepositor
 import com.blacksquircle.ui.feature.git.api.interactor.GitInteractor
 import com.blacksquircle.ui.filesystem.base.Filesystem
 import com.blacksquircle.ui.filesystem.base.exception.FileNotFoundException
+import com.blacksquircle.ui.filesystem.base.model.ArchiveInfo
 import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.local.LocalFilesystem
 import kotlinx.coroutines.delay
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
@@ -76,10 +78,16 @@ internal class ExplorerRepositoryImpl(
             serverWorkspaceSource.workspaceFlow,
         ) { default, user, servers ->
             default + user + servers
+        }.map { workspaces ->
+            if (settingsManager.hideLocalWorkspace) {
+                workspaces.filterNot { it.type == WorkspaceType.LOCAL }
+            } else {
+                workspaces
+            }
         }.onEach { workspaces ->
             _currentWorkspace = workspaces
                 .find { it.uuid == settingsManager.workspace }
-                ?: workspaces.first()
+                ?: workspaces.firstOrNull()
         }
     }
 
@@ -127,6 +135,16 @@ internal class ExplorerRepositoryImpl(
             }
             val filesystem = currentFilesystem()
             filesystem.listFiles(parent)
+        }
+    }
+
+    override suspend fun inspectArchive(source: FileModel): ArchiveInfo {
+        return withContext(dispatcherProvider.io()) {
+            try {
+                currentFilesystem().inspectArchive(source)
+            } catch (e: Exception) {
+                ArchiveInfo()
+            }
         }
     }
 
@@ -240,10 +258,10 @@ internal class ExplorerRepositoryImpl(
         }
     }
 
-    override fun extractFiles(source: FileModel, dest: FileModel): String {
+    override fun extractFiles(source: FileModel, dest: FileModel, password: String?): String {
         return taskManager.execute(TaskType.EXTRACT) { update ->
             val filesystem = currentFilesystem()
-            filesystem.extractFiles(source, dest)
+            filesystem.extractFiles(source, dest, password)
                 .onStart {
                     val progress = TaskStatus.Progress(
                         count = -1,

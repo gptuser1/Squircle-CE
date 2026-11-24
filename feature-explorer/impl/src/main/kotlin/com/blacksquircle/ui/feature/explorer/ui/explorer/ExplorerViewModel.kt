@@ -26,6 +26,7 @@ import com.blacksquircle.ui.core.provider.resources.StringProvider
 import com.blacksquircle.ui.core.settings.SettingsManager
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_COMPACT_PACKAGES
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_FOLDERS_ON_TOP
+import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_HIDE_LOCAL_WORKSPACE
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_SHOW_HIDDEN_FILES
 import com.blacksquircle.ui.core.settings.SettingsManager.Companion.KEY_SORT_MODE
 import com.blacksquircle.ui.feature.editor.api.interactor.EditorInteractor
@@ -37,6 +38,7 @@ import com.blacksquircle.ui.feature.explorer.api.navigation.CompressFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.CreateFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteWorkspaceRoute
+import com.blacksquircle.ui.feature.explorer.api.navigation.ExtractFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.PropertiesRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.RenameFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.ServerAuthRoute
@@ -73,10 +75,13 @@ import com.blacksquircle.ui.filesystem.base.exception.FileNotFoundException
 import com.blacksquircle.ui.filesystem.base.exception.InvalidArchiveException
 import com.blacksquircle.ui.filesystem.base.exception.SplitArchiveException
 import com.blacksquircle.ui.filesystem.base.exception.UnsupportedArchiveException
+import com.blacksquircle.ui.filesystem.base.exception.WrongPasswordException
 import com.blacksquircle.ui.filesystem.base.model.AuthMethod
+import com.blacksquircle.ui.filesystem.base.model.FileModel
 import com.blacksquircle.ui.filesystem.base.model.FileType
 import com.blacksquircle.ui.navigation.api.Navigator
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,8 +118,10 @@ internal class ExplorerViewModel @Inject constructor(
     private var selectedNodes: List<FileNode> = emptyList()
     private var taskType: TaskType = TaskType.CREATE
     private var taskBuffer: List<FileNode> = emptyList()
+    private var extractBuffer: ExtractRequest? = null
     private var workspaces: List<WorkspaceModel> = emptyList()
     private var selectedWorkspace: WorkspaceModel? = null
+    private var workspacesJob: Job? = null
     private var searchQuery: String = ""
 
     private var showHidden = settingsManager.showHidden
@@ -280,7 +287,7 @@ internal class ExplorerViewModel @Inject constructor(
                 }
             } else {
                 when (fileNode.file.type) {
-                    FileType.ARCHIVE -> extractFiles(fileNode)
+                    FileType.ARCHIVE -> prepareExtract(fileNode)
                     FileType.DEFAULT -> {
                         editorInteractor.openFile(fileNode.file)
                         _viewEvent.send(ExplorerViewEvent.CloseDrawer)
@@ -786,12 +793,49 @@ internal class ExplorerViewModel @Inject constructor(
         }
     }
 
-    private fun extractFiles(fileNode: FileNode) {
+    private fun prepareExtract(fileNode: FileNode) {
         viewModelScope.launch {
             val parentKey = cache.findParentKey(fileNode.key) ?: return@launch
             val parentNode = cache.findNodeByKey(parentKey) ?: return@launch
 
-            val taskId = explorerRepository.extractFiles(fileNode.file, parentNode.file)
+            val archiveInfo = explorerRepository.inspectArchive(fileNode.file)
+            if (!archiveInfo.supported) {
+                val message = stringProvider.getString(R.string.explorer_toast_unsupported_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+                return@launch
+            }
+            if (archiveInfo.split) {
+                val message = stringProvider.getString(R.string.explorer_toast_split_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+                return@launch
+            }
+
+            extractBuffer = ExtractRequest(
+                source = fileNode.file,
+                destNode = parentNode,
+            )
+            navigator.navigate(
+                ExtractFileRoute(
+                    fileUri = fileNode.file.fileUri,
+                    filesystemUuid = fileNode.file.filesystemUuid,
+                    fileName = fileNode.file.name,
+                    destPath = parentNode.file.path,
+                    encrypted = archiveInfo.encrypted,
+                )
+            )
+        }
+    }
+
+    fun extractFiles(password: String) {
+        val request = extractBuffer ?: return
+        extractBuffer = null
+
+        viewModelScope.launch {
+            val taskId = explorerRepository.extractFiles(
+                source = request.source,
+                dest = request.destNode.file,
+                password = password.ifBlank { null },
+            )
             val screen = TaskRoute(taskId)
             navigator.navigate(screen)
 
@@ -802,7 +846,7 @@ internal class ExplorerViewModel @Inject constructor(
                     is TaskStatus.Error -> onTaskFailed(status.exception)
                     is TaskStatus.Done -> {
                         onTaskFinished()
-                        loadFiles(parentNode)
+                        loadFiles(request.destNode)
                     }
 
                     else -> Unit
@@ -883,10 +927,30 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun loadWorkspaces() {
-        viewModelScope.launch {
+        workspacesJob?.cancel()
+        workspacesJob = viewModelScope.launch {
             try {
                 explorerRepository.loadWorkspaces().collect { workspaces ->
                     this@ExplorerViewModel.workspaces = workspaces
+
+                    if (workspaces.isEmpty()) {
+                        selectedWorkspace = null
+                        cache.clear()
+                        resetBuffer()
+
+                        _viewState.update {
+                            it.copy(
+                                workspaces = emptyList(),
+                                selectedWorkspace = null,
+                                fileNodes = emptyList(),
+                                searchQuery = searchQuery,
+                                showHidden = showHidden,
+                                compactPackages = compactPackages,
+                                sortMode = sortMode,
+                            )
+                        }
+                        return@collect
+                    }
 
                     val workspace = explorerRepository.currentWorkspace
                     if (workspace.uuid != selectedWorkspace?.uuid) {
@@ -927,6 +991,9 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun registerOnPreferenceChangeListeners() {
+        settingsManager.registerListener(KEY_HIDE_LOCAL_WORKSPACE) {
+            loadWorkspaces()
+        }
         settingsManager.registerListener(KEY_SHOW_HIDDEN_FILES) {
             val newValue = settingsManager.showHidden
             if (showHidden == newValue) {
@@ -982,11 +1049,17 @@ internal class ExplorerViewModel @Inject constructor(
     }
 
     private fun unregisterOnPreferenceChangeListeners() {
+        settingsManager.unregisterListener(KEY_HIDE_LOCAL_WORKSPACE)
         settingsManager.unregisterListener(KEY_SHOW_HIDDEN_FILES)
         settingsManager.unregisterListener(KEY_COMPACT_PACKAGES)
         settingsManager.unregisterListener(KEY_FOLDERS_ON_TOP)
         settingsManager.unregisterListener(KEY_SORT_MODE)
     }
+
+    private data class ExtractRequest(
+        val source: FileModel,
+        val destNode: FileNode,
+    )
 
     private fun resetBuffer() {
         taskType = TaskType.CREATE
@@ -1074,6 +1147,11 @@ internal class ExplorerViewModel @Inject constructor(
 
             is EncryptedArchiveException -> {
                 val message = stringProvider.getString(R.string.explorer_toast_encrypted_archive)
+                _viewEvent.send(ViewEvent.Toast(message))
+            }
+
+            is WrongPasswordException -> {
+                val message = stringProvider.getString(R.string.explorer_toast_wrong_password)
                 _viewEvent.send(ViewEvent.Toast(message))
             }
 

@@ -33,6 +33,7 @@ import com.blacksquircle.ui.feature.explorer.domain.repository.ExplorerRepositor
 import com.blacksquircle.ui.feature.explorer.ui.explorer.ExplorerViewModel
 import com.blacksquircle.ui.feature.servers.api.interactor.ServerInteractor
 import com.blacksquircle.ui.feature.terminal.api.interactor.TerminalInteractor
+import com.blacksquircle.ui.filesystem.base.model.ArchiveInfo
 import com.blacksquircle.ui.navigation.api.Navigator
 import com.blacksquircle.ui.test.provider.TestDispatcherProvider
 import com.blacksquircle.ui.test.rule.MainDispatcherRule
@@ -319,21 +320,23 @@ class FileTaskTest {
         // Given
         val fileModel = createFile("archive.zip")
         coEvery { explorerRepository.listFiles(any()) } returns listOf(fileModel)
+        coEvery { explorerRepository.inspectArchive(any()) } returns ArchiveInfo(supported = true)
 
         val viewModel = createViewModel()
         val fileTask = Task(taskId, TaskType.EXTRACT)
 
-        every { explorerRepository.extractFiles(any(), any()) } returns taskId
+        every { explorerRepository.extractFiles(any(), any(), any<String?>()) } returns taskId
         every { taskManager.monitor(taskId) } returns MutableStateFlow(fileTask)
 
         // When
         val fileNode = createNode(fileModel)
         viewModel.onFileClicked(fileNode)
+        viewModel.extractFiles("")
 
         // Then
         verify(exactly = 1) { taskManager.monitor(taskId) }
         coVerify(exactly = 1) {
-            explorerRepository.extractFiles(fileModel, defaultLocation)
+            explorerRepository.extractFiles(fileModel, defaultLocation, null)
         }
     }
 

@@ -75,6 +75,7 @@ class SettingsManager(private val context: Context) {
 
         // File Explorer
         const val KEY_WORKSPACE = "workspace"
+        const val KEY_HIDE_LOCAL_WORKSPACE = "hide_local_workspace"
         const val KEY_SHOW_HIDDEN_FILES = "show_hidden_files"
         const val KEY_COMPACT_PACKAGES = "compact_packages"
         const val KEY_FOLDERS_ON_TOP = "folders_on_top"
@@ -211,6 +212,9 @@ class SettingsManager(private val context: Context) {
     var workspace: String
         get() = sharedPreferences.getString(KEY_WORKSPACE, "local") ?: "local"
         set(value) = sharedPreferences.edit().putString(KEY_WORKSPACE, value).apply()
+    var hideLocalWorkspace: Boolean
+        get() = sharedPreferences.getBoolean(KEY_HIDE_LOCAL_WORKSPACE, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_HIDE_LOCAL_WORKSPACE, value).apply()
 
     var terminalRuntime: String
         get() = sharedPreferences.getString(KEY_TERMINAL_RUNTIME, "android") ?: "android"

@@ -29,6 +29,7 @@ import com.blacksquircle.ui.feature.explorer.ui.compress.CompressFileViewModel
 import com.blacksquircle.ui.feature.explorer.ui.create.CreateFileViewModel
 import com.blacksquircle.ui.feature.explorer.ui.delete.DeleteFileViewModel
 import com.blacksquircle.ui.feature.explorer.ui.explorer.ExplorerViewModel
+import com.blacksquircle.ui.feature.explorer.ui.extract.ExtractFileViewModel
 import com.blacksquircle.ui.feature.explorer.ui.permissions.PermissionViewModel
 import com.blacksquircle.ui.feature.explorer.ui.properties.PropertiesViewModel
 import com.blacksquircle.ui.feature.explorer.ui.rename.RenameFileViewModel
@@ -74,6 +75,7 @@ internal interface ExplorerComponent {
     fun inject(factory: PropertiesViewModel.Factory)
     fun inject(factory: CloneRepoViewModel.Factory)
     fun inject(factory: CompressFileViewModel.Factory)
+    fun inject(factory: ExtractFileViewModel.Factory)
     fun inject(factory: PermissionViewModel.Factory)
     fun inject(factory: AddWorkspaceViewModel.Factory)
     fun inject(factory: DeleteWorkspaceViewModel.Factory)

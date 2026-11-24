@@ -18,6 +18,7 @@ package com.blacksquircle.ui.feature.explorer.domain.repository
 
 import android.net.Uri
 import com.blacksquircle.ui.feature.explorer.domain.model.WorkspaceModel
+import com.blacksquircle.ui.filesystem.base.model.ArchiveInfo
 import com.blacksquircle.ui.filesystem.base.model.FileModel
 import kotlinx.coroutines.flow.Flow
 
@@ -32,6 +33,7 @@ internal interface ExplorerRepository {
     suspend fun deleteWorkspace(uuid: String)
 
     suspend fun listFiles(parent: FileModel): List<FileModel>
+    suspend fun inspectArchive(source: FileModel): ArchiveInfo
 
     fun createFile(parent: FileModel, fileName: String, isFolder: Boolean): String
     fun renameFile(source: FileModel, fileName: String): String
@@ -39,6 +41,6 @@ internal interface ExplorerRepository {
     fun copyFiles(source: List<FileModel>, dest: FileModel): String
     fun moveFiles(source: List<FileModel>, dest: FileModel): String
     fun compressFiles(source: List<FileModel>, dest: FileModel, fileName: String): String
-    fun extractFiles(source: FileModel, dest: FileModel): String
+    fun extractFiles(source: FileModel, dest: FileModel, password: String? = null): String
     fun cloneRepository(parent: FileModel, url: String): String
 }

@@ -26,6 +26,7 @@ import com.blacksquircle.ui.feature.explorer.api.navigation.CreateFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.DeleteWorkspaceRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.ExplorerRoute
+import com.blacksquircle.ui.feature.explorer.api.navigation.ExtractFileRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.LocalWorkspaceRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.NotificationDeniedRoute
 import com.blacksquircle.ui.feature.explorer.api.navigation.PropertiesRoute
@@ -39,6 +40,7 @@ import com.blacksquircle.ui.feature.explorer.ui.compress.CompressFileScreen
 import com.blacksquircle.ui.feature.explorer.ui.create.CreateFileScreen
 import com.blacksquircle.ui.feature.explorer.ui.delete.DeleteFileScreen
 import com.blacksquircle.ui.feature.explorer.ui.explorer.ExplorerScreen
+import com.blacksquircle.ui.feature.explorer.ui.extract.ExtractFileScreen
 import com.blacksquircle.ui.feature.explorer.ui.permissions.NotificationDeniedScreen
 import com.blacksquircle.ui.feature.explorer.ui.permissions.StorageDeniedScreen
 import com.blacksquircle.ui.feature.explorer.ui.properties.PropertiesScreen
@@ -72,6 +74,9 @@ internal class ExplorerEntryProvider : EntryProvider {
         }
         entry<CompressFileRoute>(metadata = DialogSceneStrategy.dialog()) {
             CompressFileScreen()
+        }
+        entry<ExtractFileRoute>(metadata = DialogSceneStrategy.dialog()) { navArgs ->
+            ExtractFileScreen(navArgs)
         }
         entry<TaskRoute>(metadata = DialogSceneStrategy.dialog()) { navArgs ->
             TaskScreen(navArgs)

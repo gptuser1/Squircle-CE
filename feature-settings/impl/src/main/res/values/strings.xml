@@ -121,6 +121,9 @@
     <string name="settings_linebreak_crlf">Windows (\\r\\n)</string>
     <string name="settings_linebreak_cr">Classic Mac OS (\\r)</string>
 
+    <string name="settings_category_workspace">Workspace</string>
+    <string name="settings_hide_local_workspace_title">Hide local workspace</string>
+    <string name="settings_hide_local_workspace_subtitle">Hide the local storage entry from the file manager sidebar</string>
     <string name="settings_category_file_manager">File Manager</string>
     <string name="settings_show_hidden_files_title">Show hidden files</string>
     <string name="settings_show_hidden_files_subtitle">Hidden files and folders (starting with a dot) will be displayed</string>

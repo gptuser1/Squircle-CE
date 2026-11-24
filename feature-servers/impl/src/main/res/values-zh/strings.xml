@@ -17,9 +17,9 @@
 <resources>
     <string name="servers_toolbar_title">云 &amp; 服务器</string>
     <string name="servers_category_ftp_servers">FTP(S) 服务器</string>
-    <string name="servers_connection_checking">检查中…</string>
-    <string name="servers_connection_available">可用 Ping: %1$d ms</string>
-    <string name="servers_connection_unavailable">不可用 %1$s</string>
+    <string name="servers_connection_checking">连接检测中…</string>
+    <string name="servers_connection_available">可用，延迟 %1$d ms</string>
+    <string name="servers_connection_unavailable">不可用：%1$s</string>
     <string name="servers_add_dialog_title">添加服务器</string>
     <string name="servers_edit_dialog_title">编辑服务器</string>
     <string name="servers_edit_dialog_scheme_ftp">FTP</string>
